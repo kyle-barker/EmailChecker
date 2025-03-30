@@ -2,10 +2,9 @@
   "type": "module",
   "dependencies": {
     "cheerio": "^1.0.0",
-    "cherio": "^1.0.0-rc.2",
-    "jsdom": "^26.0.0",
     "postcss": "^8.5.3",
-    "postcss-safe-parser": "^7.0.1"
+    "postcss-safe-parser": "^7.0.1",
+    "postcss-value-parser": "^4.2.0"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.35",
@@ -13,7 +12,7 @@
     "typescript": "^5.8.2"
   },
   "scripts": {
-    "build": "tsc.cmd src/test.ts",
-    "run": "node test.js"
+    "build": "tsc",
+    "start": "node dist/test.js"
   }
 }

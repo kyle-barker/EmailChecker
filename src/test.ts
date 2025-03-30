@@ -1,6 +1,7 @@
 import postcss from "postcss";
 import safeParser from "postcss-safe-parser";
 import { CheerioDOMParser } from "./CheerioDOMParser.js";
+import { RuleChecker } from "./RuleChecker.js";
 
 const test = `<!DOCTYPE html>
 <html amp4email>
@@ -22,6 +23,7 @@ const test = `<!DOCTYPE html>
 			background-color: green;
 		}
 		img, body > img {
+      background-image: url('https://example.com/button-bg.jpg');
 		}
 	</style>
     <script async src="https://cdn.ampproject.org/v0.js"></script>
@@ -33,60 +35,15 @@ const test = `<!DOCTYPE html>
   </body>
 </html>`;
 
-// Example CSS string
-const css = `
-  .example {
-    color: red;
-    font-size: 16px;
-  }
-`;
-
 const parser = new CheerioDOMParser();
 parser.load(test);
 const styleTags: string[] = parser.styleTags();
-const ASTs = styleTags.map(s => postcss.parse(s));
+const inlineStyles: string[] = parser.inlineStyles();
+const parserOptions: postcss.ProcessOptions = {parser: safeParser};
+const ASTs = [...styleTags, ...inlineStyles].map(s => postcss.parse(s, parserOptions));
 
-const rules: any = {};
-ASTs.forEach(ast => {
-  ast.walkRules(rule => {
-    const selector = rule.selector;
-    if (selector.includes(":active")) { rules["css-pseudo-class-active"] = true; } 
-    if (selector.includes(":checked")) { rules["css-pseudo-class-checked"] = true; } 
-    if (selector.includes(":first-child")) { rules["css-pseudo-class-first-child"] = true; } 
-    if (selector.includes(":first-of-type")) { rules["css-pseudo-class-first-of-type"] = true; } 
-    if (selector.includes(":focus")) { rules["css-pseudo-class-focus"] = true; } 
-    if (selector.includes(":hover")) { rules["css-pseudo-class-hover"] = true; } 
-    if (selector.includes(":last-child")) { rules["css-pseudo-class-last-child"] = true; } 
-    if (selector.includes(":last-of-type")) { rules["css-pseudo-class-last-of-type"] = true; } 
-    if (selector.includes(":link")) { rules["css-pseudo-class-link"] = true; } 
-    if (selector.includes(":not")) { rules["css-pseudo-class-not"] = true; } 
-    if (selector.includes(":nth-child")) { rules["css-pseudo-class-nth-child"] = true; } 
-    if (selector.includes(":nth-last-child")) { rules["css-pseudo-class-nth-last-child"] = true; } 
-    if (selector.includes(":nth-last-of-type")) { rules["css-pseudo-class-nth-last-of-type"] = true; } 
-    if (selector.includes(":nth-of-type")) { rules["css-pseudo-class-nth-of-type"] = true; } 
-    if (selector.includes(":only-child")) { rules["css-pseudo-class-only-child"] = true; } 
-    if (selector.includes(":only-of-type")) { rules["css-pseudo-class-only-of-type"] = true; } 
-    if (selector.includes(":target")) { rules["css-pseudo-class-target"] = true; } 
-    if (selector.includes(":visited")) { rules["css-pseudo-class-visited"] = true; } 
-    if (selector.includes("::after")) { rules["css-pseudo-element-after"] = true; } 
-    if (selector.includes("::before")) { rules["css-pseudo-element-before"] = true; } 
-    if (selector.includes("::first-letter")) { rules["css-pseudo-element-first-letter"] = true; } 
-    if (selector.includes("::first-line")) { rules["css-pseudo-element-first-line"] = true; } 
-    if (selector.includes("::marker")) { rules["css-pseudo-element-marker"] = true; } 
-    if (selector.includes("::placeholder")) { rules["css-pseudo-element-placeholder"] = true; } 
-    if (selector.includes("+")) { rules["css-selector-adjacent-sibling"] = true; } 
-    if (selector.includes("[")) { rules["css-selector-attribute"] = true; } 
+const rc = new RuleChecker();
+const matchedRules = rc.check(ASTs, parser);
 
-    console.log(selector);
-    rule.walkDecls( decl => {
-      console.log(`  ${decl.prop}: ${decl.value}`)
-    })
 
-  })
-})
-console.log(JSON.stringify(rules));
-
-// Parse the CSS string into an AST
-// const ast = postcss.parse(css);
-
-// console.log(JSON.stringify(ast, null, 2));
+console.log(JSON.stringify(matchedRules));

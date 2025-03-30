@@ -7,10 +7,22 @@ export class CheerioDOMParser {
     hasCssSelector(selector) {
         return this.$(selector).length != 0;
     }
+    elementAttributes(tag, attribute) {
+        const $ = this.$;
+        return $(`${tag}[${attribute}]`)
+            .map((_, el) => $(el).attr(attribute))
+            .get();
+    }
     styleTags() {
         const $ = this.$;
         return $("style")
             .map((_, el) => $(el).text())
+            .get();
+    }
+    inlineStyles() {
+        const $ = this.$;
+        return $("[style]")
+            .map((_, el) => $(el).attr("style"))
             .get();
     }
 }
